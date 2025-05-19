@@ -2,34 +2,58 @@ const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const pool = require("../config/db");
 
 const SECRET = process.env.JWT_SECRET;
 
-// Dummy login (replace with real DB query)
-const dummyUser = {
-  id: 1,
-  username: "testuser",
-  password: "$2b$10$HUclk8kvytU8kcPPBXx9meagmZ3frjo2C7Ve6Q3xe0dlzW7l4cbgC" // hashed password
-};
+// ✅ REGISTER
+router.post("/register", async (req, res) => {
+  const { username, password } = req.body;
 
+  try {
+    const userCheck = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
+    if (userCheck.rows.length > 0) {
+      return res.status(409).json({ message: "Username already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const result = await pool.query(
+      "INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id, username",
+      [username, hashedPassword]
+    );
+
+    res.status(201).json({ message: "User registered", user: result.rows[0] });
+  } catch (err) {
+    console.error("Registration error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ✅ LOGIN
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
-  // Simulate user lookup
-  if (username !== dummyUser.username) {
-    return res.status(401).json({ message: "User not found" });
+  try {
+    const userResult = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
+
+    if (userResult.rows.length === 0) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    const user = userResult.rows[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    const token = jwt.sign({ userId: user.id }, SECRET, { expiresIn: "1h" });
+    res.json({ token });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
-
-  const isMatch = await bcrypt.compare(password, dummyUser.password);
-  if (!isMatch) {
-    return res.status(401).json({ message: "Invalid password" });
-  }
-
-  // ✅ Generate JWT
-  const token = jwt.sign({ userId: dummyUser.id }, SECRET, { expiresIn: "1h" });
-
-  res.json({ token });
 });
 
 module.exports = router;
-console.log("JWT Secret:", SECRET);

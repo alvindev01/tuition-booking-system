@@ -1,13 +1,16 @@
 const express = require("express");
 const router = express.Router();
 const verifyToken = require("../middleware/verifyToken");
+const pool = require("../config/db");
 
-// Dummy route
-router.get("/", verifyToken, (req, res) => {
-  res.json([
-    { id: 1, subject: "Math", tutor: "Mr. Ali", time: "10:00 AM" },
-    { id: 2, subject: "Science", tutor: "Ms. Lina", time: "2:00 PM" }
-  ]);
+router.get("/", verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM sessions");
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error reading sessions:", err);
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
 module.exports = router;
