@@ -53,13 +53,8 @@ const Login = () => {
 
     setLoading(true);
     try {
-      const response = await authService.login(formData);
-      // Redirect based on user role
-      if (response.user.role === 'teacher') {
-        navigate('/teacher-dashboard');
-      } else {
-        navigate('/student-dashboard');
-      }
+      await authService.login(formData);
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid email or password');
     } finally {
