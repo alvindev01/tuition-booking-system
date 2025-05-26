@@ -1,10 +1,13 @@
 require("dotenv").config();
 
 const express = require("express");
-const app = express();
+const cors = require("cors");
 const pool = require("./config/db");
 
+const app = express();
+
 // ✅ Middleware
+app.use(cors());
 app.use(express.json());
 
 // ✅ Route imports
@@ -13,12 +16,13 @@ const sessionRoutes = require("./routes/sessions");
 const bookingsRoutes = require("./routes/bookings");
 
 // ✅ DB test
-pool.query("SELECT NOW()", (err, result) => {
+pool.connect((err, client, release) => {
   if (err) {
-    console.error("❌ Database connection failed:", err);
-  } else {
-    console.log("✅ Connected to Supabase at:", result.rows[0].now);
+    console.error("❌ Error connecting to the database:", err);
+    return;
   }
+  console.log("✅ Successfully connected to the database");
+  release();
 });
 
 // ✅ Route usage (after express.json())
@@ -26,6 +30,12 @@ app.use("/auth", authRoutes);
 app.use("/sessions", sessionRoutes);
 app.use("/bookings", bookingsRoutes);
 
+// ✅ Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Something went wrong!" });
+});
+
 // ✅ Start server
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
