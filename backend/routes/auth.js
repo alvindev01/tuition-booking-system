@@ -8,7 +8,7 @@ const SECRET = process.env.JWT_SECRET || 'your-secret-key'; // Fallback for deve
 
 // ✅ REGISTER
 router.post("/register", async (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password, role } = req.body;
 
   try {
     const userCheck = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
@@ -19,8 +19,8 @@ router.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      "INSERT INTO users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING id, email, first_name, last_name",
-      [firstName, lastName, email, hashedPassword]
+      "INSERT INTO users (first_name, last_name, email, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, first_name, last_name, role",
+      [firstName, lastName, email, hashedPassword, role]
     );
 
     const user = result.rows[0];
@@ -32,7 +32,8 @@ router.post("/register", async (req, res) => {
         id: user.id,
         email: user.email,
         firstName: user.first_name,
-        lastName: user.last_name
+        lastName: user.last_name,
+        role: user.role
       }
     });
   } catch (err) {
@@ -66,7 +67,8 @@ router.post("/login", async (req, res) => {
         id: user.id,
         email: user.email,
         firstName: user.first_name,
-        lastName: user.last_name
+        lastName: user.last_name,
+        role: user.role
       }
     });
   } catch (err) {

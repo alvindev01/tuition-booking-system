@@ -10,6 +10,11 @@ import {
   Paper,
   Alert,
   CircularProgress,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  FormControl,
+  FormLabel,
 } from '@mui/material';
 import authService from '../../services/auth.service';
 import { validateRegisterForm } from '../../utils/validation';
@@ -23,6 +28,7 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    role: 'student', // Default role
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [loading, setLoading] = useState(false);
@@ -67,8 +73,10 @@ const Register = () => {
         lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
+        role: formData.role,
       });
-      navigate('/login');
+      // Navigate based on role
+      navigate(formData.role === 'teacher' ? '/teacher-dashboard' : '/student-dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
@@ -173,6 +181,30 @@ const Register = () => {
               helperText={errors.confirmPassword}
               sx={{ mb: 2 }}
             />
+            
+            {/* Role Selection */}
+            <FormControl component="fieldset" sx={{ mb: 2, width: '100%' }}>
+              <FormLabel component="legend">Register as</FormLabel>
+              <RadioGroup
+                row
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                sx={{ justifyContent: 'center', gap: 4 }}
+              >
+                <FormControlLabel 
+                  value="student" 
+                  control={<Radio />} 
+                  label="Student" 
+                />
+                <FormControlLabel 
+                  value="teacher" 
+                  control={<Radio />} 
+                  label="Teacher" 
+                />
+              </RadioGroup>
+            </FormControl>
+
             <Button
               type="submit"
               fullWidth
