@@ -1,10 +1,11 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
-import Layout from './components/Layout/Layout';
 import Home from './pages/Home/Home';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
+import TeacherDashboard from './pages/TeacherDashboard';
+import StudentDashboard from './pages/StudentDashboard';
 
 // Create a theme instance
 const theme = createTheme({
@@ -23,16 +24,17 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<div>Dashboard Page</div>} />
-            <Route path="/bookings" element={<div>Bookings Page</div>} />
-            <Route path="*" element={<div>404 - Page Not Found</div>} />
-          </Routes>
-        </Layout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<div>Dashboard Page</div>} />
+          <Route path="/bookings" element={<div>Bookings Page</div>} />
+          <Route path="/profile" element={<div>Profile Page</div>} />
+          <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+          <Route path="/student-dashboard" element={<StudentDashboard />} />
+          <Route path="*" element={<div>404 - Page Not Found</div>} />
+        </Routes>
       </Router>
     </ThemeProvider>
   );

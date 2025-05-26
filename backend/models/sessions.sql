@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS sessions (
+  id SERIAL PRIMARY KEY,
+  subject VARCHAR(255) NOT NULL,
+  details TEXT,
+  datetime TIMESTAMP NOT NULL,
+  duration INTEGER NOT NULL,
+  max_students INTEGER NOT NULL,
+  current_bookings INTEGER DEFAULT 0,
+  teacher_id INTEGER NOT NULL REFERENCES users(id),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+); 

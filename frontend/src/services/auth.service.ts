@@ -12,6 +12,7 @@ export interface RegisterData {
   lastName: string;
   email: string;
   password: string;
+  role: 'student' | 'teacher';
 }
 
 export interface AuthResponse {
@@ -21,6 +22,7 @@ export interface AuthResponse {
     email: string;
     firstName: string;
     lastName: string;
+    role: 'student' | 'teacher';
   };
 }
 
@@ -28,6 +30,7 @@ class AuthService {
   async login(data: LoginData): Promise<AuthResponse> {
     const response = await axios.post(`${API_URL}/login`, data);
     if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data));
     }
     return response.data;
