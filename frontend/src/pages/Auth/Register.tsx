@@ -28,7 +28,7 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'student', // Default role
+    role: 'student' as 'student' | 'teacher', // Add type assertion here
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [loading, setLoading] = useState(false);
