@@ -8,10 +8,10 @@ import {
   Button,
   Chip,
   Stack,
+  Paper,
   Divider,
   Snackbar,
   Alert,
-  Container,
 } from '@mui/material';
 import {
   People as PeopleIcon,
