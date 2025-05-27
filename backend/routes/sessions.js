@@ -49,4 +49,25 @@ router.post("/", verifyToken, async (req, res) => {
   }
 });
 
+// Get bookings for a session
+router.get("/:sessionId/bookings", verifyToken, async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const result = await pool.query(
+      `SELECT b.id, b.user_id as "studentId", 
+              CONCAT(u.first_name, ' ', u.last_name) as "studentName", 
+              b.created_at as "bookingDate"
+       FROM bookings b
+       JOIN users u ON b.user_id = u.id
+       WHERE b.session_id = $1
+       ORDER BY b.created_at DESC`,
+      [sessionId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error fetching session bookings:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
 module.exports = router;

@@ -31,13 +31,55 @@ router.post("/", verifyToken, async (req, res) => {
   const { session_id } = req.body;
 
   try {
-    const result = await pool.query(
+    // Start a transaction
+    await pool.query('BEGIN');
+
+    // Check if session exists and has available spots
+    const sessionResult = await pool.query(
+      `SELECT * FROM sessions WHERE id = $1`,
+      [session_id]
+    );
+
+    if (sessionResult.rows.length === 0) {
+      await pool.query('ROLLBACK');
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    const session = sessionResult.rows[0];
+    if (session.current_bookings >= session.max_students) {
+      await pool.query('ROLLBACK');
+      return res.status(400).json({ error: "Session is full" });
+    }
+
+    // Check if user already booked this session
+    const existingBooking = await pool.query(
+      `SELECT * FROM bookings WHERE user_id = $1 AND session_id = $2`,
+      [userId, session_id]
+    );
+
+    if (existingBooking.rows.length > 0) {
+      await pool.query('ROLLBACK');
+      return res.status(400).json({ error: "You have already booked this session" });
+    }
+
+    // Create the booking
+    const bookingResult = await pool.query(
       `INSERT INTO bookings (user_id, session_id) VALUES ($1, $2) RETURNING *`,
       [userId, session_id]
     );
 
-    res.status(201).json(result.rows[0]);
+    // Update session's current bookings count
+    await pool.query(
+      `UPDATE sessions SET current_bookings = current_bookings + 1 WHERE id = $1`,
+      [session_id]
+    );
+
+    // Commit the transaction
+    await pool.query('COMMIT');
+
+    res.status(201).json(bookingResult.rows[0]);
   } catch (err) {
+    await pool.query('ROLLBACK');
     console.error("Error creating booking:", err);
     res.status(500).json({ error: "Database error" });
   }
