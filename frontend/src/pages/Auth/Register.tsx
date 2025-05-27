@@ -1,3 +1,4 @@
+// src/pages/Auth/Register.tsx
 import { useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
@@ -20,9 +21,18 @@ import authService from '../../services/auth.service';
 import { validateRegisterForm } from '../../utils/validation';
 import type { ValidationErrors } from '../../utils/validation';
 
+interface RegisterFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  role: 'student' | 'teacher';
+}
+
 const Register = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterFormData>({
     firstName: '',
     lastName: '',
     email: '',
@@ -36,10 +46,17 @@ const Register = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    if (name === 'role') {
+      setFormData(prev => ({
+        ...prev,
+        role: value as 'student' | 'teacher'
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
     // Clear error when user starts typing
     if (errors[name as keyof ValidationErrors]) {
       setErrors(prev => ({
@@ -226,4 +243,4 @@ const Register = () => {
   );
 };
 
-export default Register; 
+export default Register;
