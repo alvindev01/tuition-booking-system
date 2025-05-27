@@ -43,7 +43,7 @@ const StudentDashboard: React.FC = () => {
   const fetchSessions = async () => {
     setLoading(true);
     try {
-      const response = await fetch('${import.meta.env.VITE_API_URL}/sessions', {
+      const response = await fetch('${import.meta.env.VITE_API_URL}/sessions'), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -63,7 +63,7 @@ const StudentDashboard: React.FC = () => {
   const handleBook = async (sessionId: number) => {
     setLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/bookings`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/bookings`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
