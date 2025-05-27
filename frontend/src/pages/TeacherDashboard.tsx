@@ -72,7 +72,7 @@ const TeacherDashboard: React.FC = () => {
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch('${import.meta.env.VITE_API_URL}/sessions/teacher/1'), {
+      const response = await fetch('${import.meta.env.VITE_API_URL}/sessions/teacher/1', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -91,7 +91,7 @@ const TeacherDashboard: React.FC = () => {
 
   const fetchSessionBookings = async (sessionId: number) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/sessions/${sessionId}/bookings`), {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/sessions/${sessionId}/bookings`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -158,7 +158,7 @@ const TeacherDashboard: React.FC = () => {
         teacherId: 1
       });
 
-      const response = await fetch('${import.meta.env.VITE_API_URL}/sessions'), {
+      const response = await fetch('${import.meta.env.VITE_API_URL}/sessions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
