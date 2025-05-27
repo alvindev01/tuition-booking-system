@@ -36,6 +36,13 @@ import dayjs, { Dayjs } from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 import authService from '../services/auth.service';
 
+interface Booking {
+  id: number;
+  studentId: number;
+  studentName: string;
+  bookingDate: string;
+}
+
 interface Session {
   id: number;
   subject: string;
@@ -44,11 +51,14 @@ interface Session {
   duration: number;
   maxStudents: number;
   currentBookings: number;
+  bookings?: Booking[];
 }
 
 const TeacherDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [openDialog, setOpenDialog] = useState(false);
+  const [viewBookingsDialog, setViewBookingsDialog] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [subject, setSubject] = useState('');
   const [details, setDetails] = useState('');
   const [datetime, setDatetime] = useState<Dayjs | null>(dayjs());
@@ -78,6 +88,53 @@ const TeacherDashboard: React.FC = () => {
     } catch (error) {
       console.error('Error fetching sessions:', error);
     }
+  };
+
+  const fetchSessionBookings = async (sessionId: number) => {
+    try {
+      const response = await fetch(`http://localhost:4000/sessions/${sessionId}/bookings`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch bookings');
+      }
+      
+      const bookings = await response.json();
+      
+      // Update the session with the new bookings
+      setSessions(prev => prev.map(session => 
+        session.id === sessionId 
+          ? { 
+              ...session, 
+              bookings,
+              currentBookings: bookings.length // Update current bookings count
+            } 
+          : session
+      ));
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      // You might want to show an error message to the user here
+    }
+  };
+
+  // Add a function to refresh all sessions periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchSessions();
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleViewBookings = (session: Session) => {
+    setSelectedSession(session);
+    if (!session.bookings) {
+      fetchSessionBookings(session.id);
+    }
+    setViewBookingsDialog(true);
   };
 
   const handleAddSession = async () => {
@@ -333,9 +390,9 @@ const TeacherDashboard: React.FC = () => {
                 <Button
                   size="small"
                   variant="contained"
-                  disabled={session.currentBookings >= session.maxStudents}
+                  onClick={() => handleViewBookings(session)}
                 >
-                  View Details
+                  View Bookings
                 </Button>
               </CardActions>
             </Card>
@@ -405,6 +462,41 @@ const TeacherDashboard: React.FC = () => {
           >
             {loading ? 'Adding...' : 'Add Session'}
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* View Bookings Dialog */}
+      <Dialog 
+        open={viewBookingsDialog} 
+        onClose={() => setViewBookingsDialog(false)} 
+        maxWidth="sm" 
+        fullWidth
+      >
+        <DialogTitle>
+          Bookings for {selectedSession?.subject}
+        </DialogTitle>
+        <DialogContent>
+          {selectedSession?.bookings && selectedSession.bookings.length > 0 ? (
+            <Stack spacing={2} sx={{ mt: 2 }}>
+              {selectedSession.bookings.map((booking) => (
+                <Paper key={booking.id} sx={{ p: 2 }}>
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    {booking.studentName}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Booked on: {dayjs(booking.bookingDate).format('MMM D, YYYY h:mm A')}
+                  </Typography>
+                </Paper>
+              ))}
+            </Stack>
+          ) : (
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
+              No bookings yet
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setViewBookingsDialog(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>

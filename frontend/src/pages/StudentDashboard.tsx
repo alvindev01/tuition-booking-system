@@ -42,35 +42,60 @@ const StudentDashboard: React.FC = () => {
   }, []);
 
   const fetchSessions = async () => {
+    setLoading(true);
     try {
-      const response = await fetch('http://localhost:4000/api/sessions');
+      const response = await fetch('http://localhost:4000/sessions', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch sessions');
+      }
       const data = await response.json();
       setSessions(data);
     } catch (error) {
       setSnackbar({open: true, message: 'Failed to fetch sessions', severity: 'error'});
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleBook = async (sessionId: number) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:4000/api/bookings`, {
+      const response = await fetch(`http://localhost:4000/bookings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ sessionId }),
+        body: JSON.stringify({ session_id: sessionId }),
       });
+      
+      const data = await response.json();
+      
       if (response.ok) {
-        setSnackbar({open: true, message: 'Booking successful!', severity: 'success'});
+        setSnackbar({
+          open: true,
+          message: 'Successfully booked the session!',
+          severity: 'success'
+        });
+        // Refresh sessions to update the booking count
         fetchSessions();
       } else {
-        const error = await response.json();
-        setSnackbar({open: true, message: error.message || 'Booking failed', severity: 'error'});
+        setSnackbar({
+          open: true,
+          message: data.error || 'Failed to book session. Please try again.',
+          severity: 'error'
+        });
       }
     } catch (error) {
-      setSnackbar({open: true, message: 'Booking failed', severity: 'error'});
+      setSnackbar({
+        open: true,
+        message: 'Network error. Please check your connection and try again.',
+        severity: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -92,7 +117,13 @@ const StudentDashboard: React.FC = () => {
         </Typography>
       </Box>
       {/* Session Cards or Empty State */}
-      {sessions.length === 0 ? (
+      {loading ? (
+        <Box sx={{ textAlign: 'center', mt: 8 }}>
+          <Typography variant="h5" color="text.secondary">
+            Loading sessions...
+          </Typography>
+        </Box>
+      ) : sessions.length === 0 ? (
         <Box sx={{ textAlign: 'center', mt: 8 }}>
           <EmojiEventsIcon sx={{ fontSize: 80, color: '#bbaaff', mb: 2 }} />
           <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
